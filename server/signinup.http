@@ -1,0 +1,141 @@
+@baseUrl = http://localhost:8000
+
+@testRunId = 240001
+@testEmail = jane.doe.{{testRunId}}@example.com
+@testMobile = +91987650{{testRunId}}
+@testPassword = SuperSecret123!
+
+
+### 1. Health check
+GET {{baseUrl}}/
+
+
+### 2. Register with email
+# @name registerByEmail
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "fullName": "Jane Doe",
+  "email": "{{testEmail}}",
+  "password": "{{testPassword}}"
+}
+
+### 2. Register with email
+
+# @name registerByMobile
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "fullName": "Prajwal Nerkara",
+  "email": "prajwal@gmail.com",
+  "mobileNumber": "+91724057825",
+  "password": "Prajwal123"
+}
+
+
+### 4. Duplicate email -> 409
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "fullName": "Duplicate Jane",
+  "email": "{{testEmail}}",
+  "password": "{{testPassword}}"
+}
+
+
+### 5. Duplicate mobile -> 409
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "fullName": "Duplicate John",
+  "mobileNumber": "{{testMobile}}",
+  "password": "{{testPassword}}"
+}
+
+
+### 6. No email/mobile -> 422
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "fullName": "No Contact",
+  "password": "{{testPassword}}"
+}
+
+
+### 7. Password too short -> 422
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "fullName": "Short Password",
+  "email": "shortpw.{{$timestamp}}@example.com",
+  "password": "abc123"
+}
+
+
+### 8. Non-digit mobile -> 422
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "fullName": "Bad Mobile",
+  "mobileNumber": "98765-ABCDE",
+  "password": "{{testPassword}}"
+}
+
+
+### 9. Login with email
+# @name loginByEmail
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "identifier": "{{testEmail}}",
+  "password": "{{testPassword}}"
+}
+
+
+
+### 10. Login with mobile
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "identifier": "{{testMobile}}",
+  "password": "{{testPassword}}"
+}
+
+
+### 11. Wrong password -> 401
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "identifier": "{{testEmail}}",
+  "password": "ThisIsWrong123!"
+}
+
+
+### 12. Unknown identifier -> 401
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "identifier": "nobody.here.{{$timestamp}}@example.com",
+  "password": "whatever123"
+}
+
+
+### 13. /me without token -> 401
+GET {{baseUrl}}/api/v1/users/me
+
+
+### 14. /me with garbage token -> 401
+GET {{baseUrl}}/api/v1/users/me
+Authorization: Bearer this.is.not.a.real.jwt
+
